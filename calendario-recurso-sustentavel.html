@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendário Estratégico — Recurso Sustentável</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f4f3;
+            color: #2d3436;
+            padding: 2rem;
+            line-height: 1.5;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 2.5rem;
+            padding: 2rem;
+            background: linear-gradient(135deg, #1a5c3a, #2d8659);
+            border-radius: 16px;
+            color: white;
+        }
+        .header h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+        .header p { opacity: 0.9; font-size: 1rem; }
+        .header .periodo {
+            display: inline-block;
+            margin-top: 0.8rem;
+            padding: 0.4rem 1.2rem;
+            background: rgba(255,255,255,0.15);
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        .semana {
+            margin-bottom: 3rem;
+        }
+        .semana-header {
+            background: #1a5c3a;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .semana-header h2 { font-size: 1.1rem; }
+        .semana-header .tema {
+            font-size: 0.9rem;
+            background: rgba(255,255,255,0.15);
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+        }
+        .calendario-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 1px;
+            background: #dfe6e9;
+            border: 1px solid #dfe6e9;
+            border-radius: 0 0 12px 12px;
+            overflow: hidden;
+        }
+        .dia-coluna {
+            background: white;
+            min-height: 200px;
+        }
+        .dia-header {
+            text-align: center;
+            padding: 0.6rem;
+            font-weight: 700;
+            font-size: 0.85rem;
+            background: #f8faf9;
+            border-bottom: 2px solid #e8f0ec;
+            color: #1a5c3a;
+        }
+        .dia-content {
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .card {
+            border-radius: 8px;
+            padding: 0.6rem;
+            font-size: 0.75rem;
+            border-left: 4px solid;
+        }
+        .card-titulo {
+            font-weight: 700;
+            margin-bottom: 0.3rem;
+            font-size: 0.78rem;
+        }
+        .card-canal {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 10px;
+            font-size: 0.65rem;
+            font-weight: 600;
+            margin-bottom: 0.3rem;
+            color: white;
+        }
+        .card-objetivo {
+            font-style: italic;
+            color: #636e72;
+            font-size: 0.7rem;
+        }
+        .card-obs {
+            color: #6c757d;
+            font-size: 0.68rem;
+            margin-top: 0.2rem;
+        }
+        /* Categorias de cor */
+        .cat-interno { background: #fef9e7; border-color: #f39c12; }
+        .cat-interno .card-canal { background: #f39c12; }
+        .cat-blog { background: #eaf7f0; border-color: #27ae60; }
+        .cat-blog .card-canal { background: #27ae60; }
+        .cat-social { background: #eaf0fa; border-color: #2980b9; }
+        .cat-social .card-canal { background: #2980b9; }
+        .cat-email { background: #f5eef8; border-color: #8e44ad; }
+        .cat-email .card-canal { background: #8e44ad; }
+        .cat-video { background: #fdeef0; border-color: #e74c3c; }
+        .cat-video .card-canal { background: #e74c3c; }
+        .cat-institucional { background: #eef5f0; border-color: #16a085; }
+        .cat-institucional .card-canal { background: #16a085; }
+        .cat-comercial { background: #fef0e7; border-color: #e67e22; }
+        .cat-comercial .card-canal { background: #e67e22; }
+
+        /* Fluxo e Observações */
+        .secao {
+            margin-top: 2.5rem;
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .secao h2 {
+            color: #1a5c3a;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+        .tabela-fluxo {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .tabela-fluxo th, .tabela-fluxo td {
+            padding: 0.7rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e8f0ec;
+        }
+        .tabela-fluxo th {
+            background: #f8faf9;
+            color: #1a5c3a;
+            font-weight: 700;
+        }
+        .obs-list { list-style: none; }
+        .obs-list li {
+            padding: 0.6rem 0;
+            border-bottom: 1px solid #f0f4f3;
+            padding-left: 1.2rem;
+            position: relative;
+        }
+        .obs-list li::before {
+            content: "●";
+            color: #27ae60;
+            position: absolute;
+            left: 0;
+        }
+        @media print {
+            body { padding: 0.5rem; background: white; }
+            .semana { page-break-inside: avoid; }
+            .header { background: #1a5c3a !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+        @media (max-width: 768px) {
+            .calendario-grid { grid-template-columns: 1fr; }
+            body { padding: 1rem; }
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 0.3rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .status-publicado { background: #d4efdf; color: #1e8449; }
+        .status-agendado { background: #fef3cd; color: #856404; }
+        .status-planejamento { background: #d6eaf8; color: #1a5276; }
+        .status-nota {
+            font-size: 0.75rem;
+            color: rgba(255,255,255,0.85);
+            margin-top: 0.3rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Calendário Estratégico — 30 Dias</h1>
+        <p>Recurso Sustentável &nbsp;|&nbsp; Resp. Cinthia &nbsp;|&nbsp; Resp. Elia &nbsp;|&nbsp; Resp. Social Mídia</p>
+        <span class="periodo">21/04/2026 → 29/05/2026</span>
+    </div>
+
+    <!-- DIRETRIZES DE CONTEÚDO -->
+    <div class="secao" style="margin-top: 0; margin-bottom: 2.5rem; border: 2px solid #1a5c3a; background: linear-gradient(135deg, #f0faf5, #ffffff); position: relative; overflow: hidden;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #1a5c3a, #27ae60, #2ecc71);"></div>
+        <h2 style="font-size: 1.4rem; margin-bottom: 0.3rem;">Diretrizes de Conteúdo</h2>
+        <p style="color: #636e72; margin-bottom: 1.2rem; font-size: 0.9rem;">Alinhamento estratégico de reunião — guia para todas as publicações</p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+            <div style="background: white; border-radius: 10px; padding: 1rem; border-left: 4px solid #27ae60; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+                <strong style="color: #1a5c3a;">Fluxo Semanal Obrigatório</strong>
+                <p style="font-size: 0.85rem; margin-top: 0.4rem; color: #2d3436;">Segunda: Blog + LinkedIn → Terça: Aprovação do artigo + conteúdos + artes → Quarta: Social + E-mail + Vídeo → Quinta: Institucional → Sexta: Institucional + Serviço com CTA.</p>
+            </div>
+            <div style="background: white; border-radius: 10px; padding: 1rem; border-left: 4px solid #2980b9; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+                <strong style="color: #1a5c3a;">Post de Serviço</strong>
+                <p style="font-size: 0.85rem; margin-top: 0.4rem; color: #2d3436;">Deve deixar explícito que a empresa oferece aquele serviço. O conteúdo técnico sempre deve "morrer" em um serviço claro.</p>
+            </div>
+            <div style="background: white; border-radius: 10px; padding: 1rem; border-left: 4px solid #8e44ad; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+                <strong style="color: #1a5c3a;">Storytelling</strong>
+                <p style="font-size: 0.85rem; margin-top: 0.4rem; color: #2d3436;">Contar histórias reais por trás dos serviços — sem prints ou abordagem "brega". Mostrar contexto e valor do trabalho.</p>
+            </div>
+            <div style="background: white; border-radius: 10px; padding: 1rem; border-left: 4px solid #e74c3c; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+                <strong style="color: #1a5c3a;">Backup de Vídeo</strong>
+                <p style="font-size: 0.85rem; margin-top: 0.4rem; color: #2d3436;">Quando o vídeo atrasar, manter publicação estática no lugar.</p>
+            </div>
+            <div style="background: white; border-radius: 10px; padding: 1rem; border-left: 4px solid #f39c12; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+                <strong style="color: #1a5c3a;">Reaproveitamento</strong>
+                <p style="font-size: 0.85rem; margin-top: 0.4rem; color: #2d3436;">Vídeos e stories podem virar cortes, reels e destaques no Instagram.</p>
+            </div>
+            <div style="background: white; border-radius: 10px; padding: 1rem; border-left: 4px solid #16a085; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+                <strong style="color: #1a5c3a;">Tom e CTA</strong>
+                <p style="font-size: 0.85rem; margin-top: 0.4rem; color: #2d3436;">CTA consultivo, nunca agressivo. Público prefere conteúdos técnicos e dicas práticas.</p>
+            </div>
+            <div style="background: white; border-radius: 10px; padding: 1rem; border-left: 4px solid #e67e22; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+                <strong style="color: #1a5c3a;">Visual das Artes</strong>
+                <p style="font-size: 0.85rem; margin-top: 0.4rem; color: #2d3436;">Mais respiro nas bordas, fontes menores, legibilidade mobile (iPhone), visual clean e elegante.</p>
+            </div>
+            <div style="background: white; border-radius: 10px; padding: 1rem; border-left: 4px solid #2d3436; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+                <strong style="color: #1a5c3a;">Instagram</strong>
+                <p style="font-size: 0.85rem; margin-top: 0.4rem; color: #2d3436;">Revisar publicações fixadas, link da bio, destaques e organização de serviços como portfólio.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="semana">
+        <div class="semana-header">
+            <h2>CONTEÚDO 1 — 21/04 a 25/04</h2>
+            <span class="tema">Você está mudando a indústria e a gestão ambiental é a sua ferramenta</span>
+            <span class="status-badge status-publicado">Publicado</span>
+        </div>
+        <div class="calendario-grid">
+            <!-- Segunda -->
+            <div class="dia-coluna">
+                <div class="dia-header">SEGUNDA 21/04</div>
+                <div class="dia-content">
+                    <div class="card cat-interno">
+                        <span class="card-canal">Interno</span>
+                        <div class="card-titulo">Aprovação do artigo principal</div>
+                        <div class="card-objetivo">Validar pauta da semana</div>
+                        <div class="card-obs">Aprovação da Cíntia</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Terça -->
+            <div class="dia-coluna">
+                <div class="dia-header">TERÇA 22/04</div>
+                <div class="dia-content">
+                    <div class="card cat-blog">
+                        <span class="card-canal">Blog + LinkedIn</span>
+                        <div class="card-titulo">Artigo: "Como eficiência energética reduz custos e fortalece o ESG das empresas"</div>
+                        <div class="card-objetivo">SEO + autoridade</div>
+                        <div class="card-obs">Replicar no LinkedIn da empresa e pessoal</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Quarta -->
+            <div class="dia-coluna">
+                <div class="dia-header">QUARTA 23/04</div>
+                <div class="dia-content">
+                    <div class="card cat-social">
+                        <span class="card-canal">Instagram + Facebook + GMN</span>
+                        <div class="card-titulo">Carrossel: "5 sinais de desperdício energético na sua operação"</div>
+                        <div class="card-objetivo">Educação</div>
+                        <div class="card-obs">CTA leve</div>
+                    </div>
+                    <div class="card cat-email">
+                        <span class="card-canal">E-mail Marketing</span>
+                        <div class="card-titulo">Disparo do artigo da semana</div>
+                        <div class="card-objetivo">Nutrição da base</div>
+                        <div class="card-obs">RD Station</div>
+                    </div>
+                    <div class="card cat-video">
+                        <span class="card-canal">Vídeo/Roteiro</span>
+                        <div class="card-titulo">Roteiro: bastidores + fala técnica da Cíntia</div>
+                        <div class="card-objetivo">Humanização</div>
+                        <div class="card-obs">Reels/LinkedIn</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Quinta -->
+            <div class="dia-coluna">
+                <div class="dia-header">QUINTA 24/04</div>
+                <div class="dia-content">
+                    <div class="card cat-institucional">
+                        <span class="card-canal">Instagram + LinkedIn</span>
+                        <div class="card-titulo">Conteúdo institucional: case ou reflexão sobre gestão sustentável</div>
+                        <div class="card-objetivo">Posicionamento</div>
+                        <div class="card-obs">Possível collab</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Sexta -->
+            <div class="dia-coluna">
+                <div class="dia-header">SEXTA 25/04</div>
+                <div class="dia-content">
+                    <div class="card cat-institucional">
+                        <span class="card-canal">Instagram + Facebook</span>
+                        <div class="card-titulo">Conteúdo institucional com bastidor técnico</div>
+                        <div class="card-objetivo">Autoridade</div>
+                        <div class="card-obs">Foto equipe/projeto</div>
+                    </div>
+                    <div class="card cat-comercial">
+                        <span class="card-canal">Instagram + LinkedIn</span>
+                        <div class="card-titulo">Conteúdo serviço: consultoria ambiental e eficiência energética</div>
+                        <div class="card-objetivo">Conversão</div>
+                        <div class="card-obs">CTA estratégico</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEMANA 2 -->
+    <div class="semana">
+        <div class="semana-header">
+            <h2>CONTEÚDO 2 — 04/05 a 08/05</h2>
+            <span class="tema">Água e efluentes na gestão ambiental industrial: o que mudou em Goiás e o que você precisa controlar agora</span>
+            <span class="status-badge status-agendado">Agendado</span>
+            <p class="status-nota">* Falta post de serviços</p>
+        </div>
+        <div class="calendario-grid">
+            <!-- Segunda -->
+            <div class="dia-coluna">
+                <div class="dia-header">SEGUNDA 04/05</div>
+                <div class="dia-content">
+                    <div class="card cat-blog">
+                        <span class="card-canal">Blog + LinkedIn</span>
+                        <div class="card-titulo">Artigo: "Como reduzir custos através da gestão correta de resíduos"</div>
+                        <div class="card-objetivo">SEO</div>
+                        <div class="card-obs">Palavra-chave estratégica</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Terça -->
+            <div class="dia-coluna">
+                <div class="dia-header">TERÇA 05/05</div>
+                <div class="dia-content">
+                    <div class="card cat-interno">
+                        <span class="card-canal">Interno</span>
+                        <div class="card-titulo">Aprovação do artigo principal + conteúdos redes sociais + artes</div>
+                        <div class="card-objetivo">Validação</div>
+                        <div class="card-obs">Aprovação da Cinthia</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Quarta -->
+            <div class="dia-coluna">
+                <div class="dia-header">QUARTA 06/05</div>
+                <div class="dia-content">
+                    <div class="card cat-social">
+                        <span class="card-canal">Instagram + Facebook</span>
+                        <div class="card-titulo">Carrossel educativo: "Erros que geram passivos ambientais"</div>
+                        <div class="card-objetivo">Engajamento</div>
+                        <div class="card-obs">Linguagem empresarial</div>
+                    </div>
+                    <div class="card cat-email">
+                        <span class="card-canal">E-mail Marketing</span>
+                        <div class="card-titulo">Disparo do conteúdo</div>
+                        <div class="card-objetivo">Nutrição</div>
+                        <div class="card-obs">Link do blog</div>
+                    </div>
+                    <div class="card cat-video">
+                        <span class="card-canal">Vídeo/Roteiro</span>
+                        <div class="card-titulo">Vídeo curto sobre erros comuns em empresas</div>
+                        <div class="card-objetivo">Autoridade</div>
+                        <div class="card-obs">Reels</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Quinta -->
+            <div class="dia-coluna">
+                <div class="dia-header">QUINTA 07/05</div>
+                <div class="dia-content">
+                    <div class="card cat-institucional">
+                        <span class="card-canal">Instagram + LinkedIn</span>
+                        <div class="card-titulo">Conteúdo institucional sobre cultura ambiental nas empresas</div>
+                        <div class="card-objetivo">Marca</div>
+                        <div class="card-obs">Collab com Cíntia</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Sexta -->
+            <div class="dia-coluna">
+                <div class="dia-header">SEXTA 08/05</div>
+                <div class="dia-content">
+                    <div class="card cat-institucional">
+                        <span class="card-canal">Instagram + Facebook</span>
+                        <div class="card-titulo">Bastidores técnicos ou operação em campo</div>
+                        <div class="card-objetivo">Humanização</div>
+                        <div class="card-obs">Mostrar equipe</div>
+                    </div>
+                    <div class="card cat-comercial">
+                        <span class="card-canal">Instagram + LinkedIn</span>
+                        <div class="card-titulo">Conteúdo comercial: serviços de gestão de resíduos</div>
+                        <div class="card-objetivo">Conversão</div>
+                        <div class="card-obs">CTA consultivo</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEMANA 3 -->
+    <div class="semana">
+        <div class="semana-header">
+            <h2>CONTEÚDO 3 — 11/05 a 15/05</h2>
+            <span class="tema">Eficiência energética na indústria: é gestão de custo, é gestão ambiental e é o caminho mais curto para o inventário de GEE</span>
+            <span class="status-badge status-planejamento">Em Planejamento</span>
+        </div>
+        <div class="calendario-grid">
+            <!-- Segunda -->
+            <div class="dia-coluna">
+                <div class="dia-header">SEGUNDA 11/05</div>
+                <div class="dia-content">
+                    <div class="card cat-blog">
+                        <span class="card-canal">Blog + LinkedIn</span>
+                        <div class="card-titulo">Artigo: "Os riscos de operar sem licenciamento ambiental atualizado"</div>
+                        <div class="card-objetivo">SEO + autoridade</div>
+                        <div class="card-obs">Conteúdo técnico</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Terça -->
+            <div class="dia-coluna">
+                <div class="dia-header">TERÇA 12/05</div>
+                <div class="dia-content">
+                    <div class="card cat-interno">
+                        <span class="card-canal">Interno</span>
+                        <div class="card-titulo">Aprovação do artigo principal + conteúdos redes sociais + artes</div>
+                        <div class="card-objetivo">Validação</div>
+                        <div class="card-obs">Aprovação da Cinthia</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Quarta -->
+            <div class="dia-coluna">
+                <div class="dia-header">QUARTA 13/05</div>
+                <div class="dia-content">
+                    <div class="card cat-social">
+                        <span class="card-canal">Instagram + Facebook</span>
+                        <div class="card-titulo">Conteúdo derivado: "Sua empresa pode estar irregular sem saber"</div>
+                        <div class="card-objetivo">Atenção</div>
+                        <div class="card-obs">Carrossel</div>
+                    </div>
+                    <div class="card cat-email">
+                        <span class="card-canal">E-mail Marketing</span>
+                        <div class="card-titulo">Disparo do artigo</div>
+                        <div class="card-objetivo">Tráfego</div>
+                        <div class="card-obs">RD Station</div>
+                    </div>
+                    <div class="card cat-video">
+                        <span class="card-canal">Vídeo/Roteiro</span>
+                        <div class="card-titulo">Roteiro educativo com fala da Cíntia</div>
+                        <div class="card-objetivo">Autoridade</div>
+                        <div class="card-obs">Formato reels</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Quinta -->
+            <div class="dia-coluna">
+                <div class="dia-header">QUINTA 14/05</div>
+                <div class="dia-content">
+                    <div class="card cat-institucional">
+                        <span class="card-canal">Instagram + LinkedIn</span>
+                        <div class="card-titulo">Conteúdo institucional sobre responsabilidade empresarial</div>
+                        <div class="card-objetivo">Branding</div>
+                        <div class="card-obs">Post reflexivo</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Sexta -->
+            <div class="dia-coluna">
+                <div class="dia-header">SEXTA 15/05</div>
+                <div class="dia-content">
+                    <div class="card cat-institucional">
+                        <span class="card-canal">Instagram + Facebook</span>
+                        <div class="card-titulo">Bastidores/consultoria em andamento</div>
+                        <div class="card-objetivo">Confiança</div>
+                        <div class="card-obs">Mostrar realidade</div>
+                    </div>
+                    <div class="card cat-comercial">
+                        <span class="card-canal">Instagram + LinkedIn</span>
+                        <div class="card-titulo">Conteúdo serviço: licenciamento ambiental</div>
+                        <div class="card-objetivo">Conversão</div>
+                        <div class="card-obs">CTA para diagnóstico</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SEMANA 4 -->
+    <div class="semana">
+        <div class="semana-header">
+            <h2>CONTEÚDO 4 — 18/05 a 22/05</h2>
+            <span class="tema">Resíduos sólidos: o aspecto mais visível da indústria é também o mais mal gerido</span>
+            <span class="status-badge status-planejamento">Em Planejamento</span>
+        </div>
+        <div class="calendario-grid">
+            <!-- Segunda -->
+            <div class="dia-coluna">
+                <div class="dia-header">SEGUNDA 18/05</div>
+                <div class="dia-content">
+                    <div class="card cat-blog">
+                        <span class="card-canal">Blog + LinkedIn</span>
+                        <div class="card-titulo">Artigo: "Como aplicar ESG de forma prática e estratégica"</div>
+                        <div class="card-objetivo">SEO + posicionamento</div>
+                        <div class="card-obs">Forte autoridade</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Terça -->
+            <div class="dia-coluna">
+                <div class="dia-header">TERÇA 19/05</div>
+                <div class="dia-content">
+                    <div class="card cat-interno">
+                        <span class="card-canal">Interno</span>
+                        <div class="card-titulo">Aprovação do artigo principal + conteúdos redes sociais + artes</div>
+                        <div class="card-objetivo">Validação</div>
+                        <div class="card-obs">Aprovação da Cinthia</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Quarta -->
+            <div class="dia-coluna">
+                <div class="dia-header">QUARTA 20/05</div>
+                <div class="dia-content">
+                    <div class="card cat-social">
+                        <span class="card-canal">Instagram + Facebook</span>
+                        <div class="card-titulo">Carrossel: "ESG não é tendência. É sobrevivência de mercado."</div>
+                        <div class="card-objetivo">Engajamento</div>
+                        <div class="card-obs">Tom forte</div>
+                    </div>
+                    <div class="card cat-email">
+                        <span class="card-canal">E-mail Marketing</span>
+                        <div class="card-titulo">Disparo do conteúdo</div>
+                        <div class="card-objetivo">Relacionamento</div>
+                        <div class="card-obs">CTA para leitura</div>
+                    </div>
+                    <div class="card cat-video">
+                        <span class="card-canal">Vídeo/Roteiro</span>
+                        <div class="card-titulo">Vídeo da Cíntia explicando ESG na prática</div>
+                        <div class="card-objetivo">Humanização</div>
+                        <div class="card-obs">Reels</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Quinta -->
+            <div class="dia-coluna">
+                <div class="dia-header">QUINTA 21/05</div>
+                <div class="dia-content">
+                    <div class="card cat-institucional">
+                        <span class="card-canal">Instagram + LinkedIn</span>
+                        <div class="card-titulo">Conteúdo institucional sobre visão de futuro</div>
+                        <div class="card-objetivo">Branding</div>
+                        <div class="card-obs">Possível collab</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Sexta -->
+            <div class="dia-coluna">
+                <div class="dia-header">SEXTA 22/05</div>
+                <div class="dia-content">
+                    <div class="card cat-institucional">
+                        <span class="card-canal">Instagram + Facebook</span>
+                        <div class="card-titulo">Bastidores + rotina técnica da empresa</div>
+                        <div class="card-objetivo">Autoridade</div>
+                        <div class="card-obs">Mostrar operação</div>
+                    </div>
+                    <div class="card cat-comercial">
+                        <span class="card-canal">Instagram + LinkedIn</span>
+                        <div class="card-titulo">Conteúdo serviço: consultoria ESG</div>
+                        <div class="card-objetivo">Conversão</div>
+                        <div class="card-obs">CTA consultivo</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTEÚDO 5 -->
+    <div class="semana">
+        <div class="semana-header">
+            <h2>CONTEÚDO 5 — 25/05 a 29/05</h2>
+            <span class="tema">Monitoramento de fontes fixas: como estruturar o processo na sua indústria, da parametrização ao laudo</span>
+            <span class="status-badge status-planejamento">Em Planejamento</span>
+        </div>
+        <div class="calendario-grid">
+            <!-- Segunda -->
+            <div class="dia-coluna">
+                <div class="dia-header">SEGUNDA 25/05</div>
+                <div class="dia-content">
+                    <div class="card cat-blog">
+                        <span class="card-canal">Blog + LinkedIn</span>
+                        <div class="card-titulo">Artigo da semana</div>
+                        <div class="card-objetivo">SEO + autoridade</div>
+                        <div class="card-obs">Replicar no LinkedIn</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Terça -->
+            <div class="dia-coluna">
+                <div class="dia-header">TERÇA 26/05</div>
+                <div class="dia-content">
+                    <div class="card cat-interno">
+                        <span class="card-canal">Interno</span>
+                        <div class="card-titulo">Aprovação do artigo principal + conteúdos redes sociais + artes</div>
+                        <div class="card-objetivo">Validação</div>
+                        <div class="card-obs">Aprovação da Cinthia</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Quarta -->
+            <div class="dia-coluna">
+                <div class="dia-header">QUARTA 27/05</div>
+                <div class="dia-content">
+                    <div class="card cat-social">
+                        <span class="card-canal">Instagram + Facebook</span>
+                        <div class="card-titulo">Carrossel derivado do artigo</div>
+                        <div class="card-objetivo">Engajamento</div>
+                        <div class="card-obs">CTA leve</div>
+                    </div>
+                    <div class="card cat-email">
+                        <span class="card-canal">E-mail Marketing</span>
+                        <div class="card-titulo">Disparo do artigo</div>
+                        <div class="card-objetivo">Nutrição</div>
+                        <div class="card-obs">RD Station</div>
+                    </div>
+                    <div class="card cat-video">
+                        <span class="card-canal">Vídeo/Roteiro</span>
+                        <div class="card-titulo">Roteiro com fala da Cíntia</div>
+                        <div class="card-objetivo">Autoridade</div>
+                        <div class="card-obs">Reels</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Quinta -->
+            <div class="dia-coluna">
+                <div class="dia-header">QUINTA 28/05</div>
+                <div class="dia-content">
+                    <div class="card cat-institucional">
+                        <span class="card-canal">Instagram + LinkedIn</span>
+                        <div class="card-titulo">Conteúdo institucional</div>
+                        <div class="card-objetivo">Branding</div>
+                        <div class="card-obs">Possível collab</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Sexta -->
+            <div class="dia-coluna">
+                <div class="dia-header">SEXTA 29/05</div>
+                <div class="dia-content">
+                    <div class="card cat-institucional">
+                        <span class="card-canal">Instagram + Facebook</span>
+                        <div class="card-titulo">Bastidores técnicos</div>
+                        <div class="card-objetivo">Autoridade</div>
+                        <div class="card-obs">Mostrar operação</div>
+                    </div>
+                    <div class="card cat-comercial">
+                        <span class="card-canal">Instagram + LinkedIn</span>
+                        <div class="card-titulo">Conteúdo serviço da semana</div>
+                        <div class="card-objetivo">Conversão</div>
+                        <div class="card-obs">CTA consultivo</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLUXO OPERACIONAL -->
+    <div class="secao">
+        <h2>Fluxo Operacional Recomendado</h2>
+        <table class="tabela-fluxo">
+            <thead>
+                <tr>
+                    <th>Etapa</th>
+                    <th>Responsável</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Pesquisa e pauta</td><td>Elia</td></tr>
+                <tr><td>Aprovação técnica</td><td>Cíntia</td></tr>
+                <tr><td>Copy social</td><td>Elia</td></tr>
+                <tr><td>Design</td><td>Lucas</td></tr>
+                <tr><td>Publicação</td><td>Kelvin</td></tr>
+                <tr><td>Vídeo/Reels</td><td>Yuri</td></tr>
+                <tr><td>Blog/Site</td><td>Erick</td></tr>
+                <tr><td>Disparo e automação</td><td>Albert/Equipe RD</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- OBSERVAÇÕES ESTRATÉGICAS -->
+    <div class="secao">
+        <h2>Observações Estratégicas</h2>
+        <ul class="obs-list">
+            <li>Replicar TODOS os artigos no perfil pessoal da Cíntia no LinkedIn.</li>
+            <li>Priorizar collab no Instagram para aumentar autoridade pessoal.</li>
+            <li>Todo artigo precisa gerar: 1 carrossel, 1 roteiro de vídeo, 2 conteúdos institucionais, 1 conteúdo comercial, 1 e-mail marketing.</li>
+            <li>Publicações no Google Business Profile devem reutilizar versões resumidas dos conteúdos institucionais.</li>
+            <li>Priorizar CTA consultivo e não agressivo.</li>
+            <li>Vídeos devem seguir formato: Gancho inicial → Problema → Consequência → Orientação técnica → CTA leve.</li>
+        </ul>
+    </div>
+
+</body>
+</html>
